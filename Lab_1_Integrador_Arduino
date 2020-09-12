@@ -1,0 +1,27 @@
+int gen;		//variable para almacenamiento del generador
+int inte;	//Variable para el almacenamiento del integrador
+float conv1;	//variables de escalado
+float conv2;
+
+void setup()
+{
+  Serial.begin(9600);
+}
+
+void loop()
+{
+  gen = analogRead(A0);		//Se mide la entrada del pin analogo A0 y se guarda en gen
+  inte = analogRead(A1);	//mismo caso que gen solo que es el valor del integrador
+  conv1 = fmap(gen, 0, 1023, 0.0, 5.0);
+  conv2 = fmap(inte, 0, 1023, 0.0, 5.0);
+  
+  Serial.print(conv1);		//se imprime el valor en el puerto serial de gen
+  Serial.print(", ");
+  Serial.println(conv2);		//mismo caso que gen
+  
+}
+
+float fmap(float x, float in_min, float in_max, float out_min, float out_max)
+{
+   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
