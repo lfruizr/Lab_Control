@@ -1,0 +1,83 @@
+double reference = 0.0;		//Fuente DC
+double salidaInt = 0.0;		//Salida integrador
+double u = 0.0;	
+double u1 = 0.0;//Señal de control
+
+//constantes PID
+double kp = 2;
+double ki = 25;
+double kd = 0.2;				//cambiar a double por si acaso
+//Variables error
+float error = 0.0000;			//error precente
+double errorAnt = 0.00;			//error anterior
+float errorInt = 0.000000; 	//error integral
+double errorDev = 0.00;			//error derivada
+//salidas PWM
+int salidaPos = 6;
+int salidaNeg = 5;
+
+double uPWM = 0.0000;				//Señal control PWM
+int fdc = 51.0;				//Variable de normalizacion
+
+int dt = 10.0;
+
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(salidaPos,OUTPUT);
+  pinMode(salidaNeg,OUTPUT);
+  
+  pinMode(A0,INPUT);
+  pinMode(A1,INPUT); 
+  
+  analogRead(A0);
+  analogRead(A1);
+  
+}
+
+unsigned long cTime = millis();	//Variable para tener el tiempo transcurrido 
+
+void loop() 
+{
+  errorAnt = error;
+  salidaInt = 5*analogRead(A0)/1023.0;   	// lectura señal salida Integrador
+  reference = 5*analogRead(A1)/1023.0;	// Lectura valor fuente DC
+
+  error = reference - salidaInt;		//se calcula el error
+
+  errorDev = (error - errorAnt)*(1000.0/dt);//se hace la conversion de unidades
+
+  
+  u1 = kp*error + ki*errorInt + kd*errorDev;
+  u = u1;
+  
+  if(u>5){
+    u = 5;}
+  if(u<-5){
+    u = -5;}
+  
+  uPWM = u*fdc;
+
+  if(uPWM>0){
+  analogWrite(salidaPos,uPWM);
+  digitalWrite(salidaNeg,0);
+  }
+  
+  if(uPWM<=0){
+    digitalWrite(salidaPos,0);
+    analogWrite(salidaNeg,-uPWM);
+  }  
+  
+  Serial.print(reference);
+  Serial.print(", ");
+  
+  Serial.print(salidaInt);
+  Serial.print(", ");
+ 
+  Serial.println(u);
+  
+  delay(5);
+  
+  errorInt = errorInt + (error*dt)/1000;
+
+}
